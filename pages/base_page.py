@@ -1,4 +1,5 @@
 import time
+import datetime
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
@@ -10,7 +11,12 @@ class BasePage:
         self.driver = driver
         self.url = "https://automationexercise.com/"
 
+    def log(self, message):
+        timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+        print(f"[{timestamp}] {message}")
+
     def open(self):
+        self.log(f"Opening webpage: {self.url}")
         self.driver.get(self.url)
         self.handle_cookie_banner()
 
@@ -39,11 +45,15 @@ class BasePage:
         time.sleep(0.5)
 
     def click(self, locator):
+        self.log(f"Clicking element: {locator}")
         element = self.find(locator)
         self.scroll_to_element(element)
         element.click()
 
     def type_text(self, locator, text):
+        log_text = "*****" if "password" in str(locator).lower() else text
+        self.log(f"Entering text '{log_text}' to element: {locator}")
+
         element = self.find(locator)
         self.scroll_to_element(element)
         element.click()
@@ -54,6 +64,7 @@ class BasePage:
         return self.driver.title
 
     def select_dropdown(self, locator, visible_text):
+        self.log(f"Selecting option '{visible_text}' from list: {locator}")  # Logowanie
         element = self.find(locator)
         self.scroll_to_element(element)
         select = Select(element)
@@ -62,4 +73,6 @@ class BasePage:
     def get_element_text(self, locator):
         element = self.find(locator)
         self.scroll_to_element(element)
-        return element.text
+        text = element.text
+        self.log(f"Retrieved text from element {locator}: '{text}'")
+        return text
