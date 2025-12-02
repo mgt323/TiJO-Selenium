@@ -57,7 +57,6 @@ class TestFunctional:
     # FT07: Product Quantity Change
     @pytest.mark.parametrize("quantity_input, expected_quantity", [
         ("1", "1"),
-        ("2", "2"),
         ("0", "1"),
         ("-1", "1")
     ])

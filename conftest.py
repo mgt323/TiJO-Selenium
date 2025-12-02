@@ -1,4 +1,5 @@
 import pytest
+from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.firefox.service import Service as FirefoxService
@@ -44,3 +45,33 @@ def driver(request):
     driver.implicitly_wait(10)
     yield driver
     driver.quit()
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+    extras = getattr(report, "extras", [])
+
+    if report.when == "call":
+        driver = item.funcargs.get('driver')
+
+        if report.failed and driver:
+            now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+            file_name = f"screenshot_{item.nodeid.replace('::', '_')}_{now}.png".replace("/", "_").replace("\\", "_")
+
+            try:
+                driver.save_screenshot(file_name)
+                print(f"\n[SCREENSHOT] Screenshot saved as: {file_name}")
+            except Exception as e:
+                print(f"\n[SCREENSHOT ERROR] Couldn't save screenshot {e}")
+                pass
+
+            try:
+                from pytest_html import extras as html_extras
+                extras.append(html_extras.image(file_name))
+            except ImportError:
+                print(
+                    "Screenshot saved, missing pytest-html.")
+
+        report.extras = extras
